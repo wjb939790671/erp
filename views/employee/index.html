@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../static/easyui/demo/demo.css">
+    <link rel="stylesheet" href="../../static/css/base.css">
+    <script src="../../static/js/jquery-3.4.1.js"></script>
+    <script type="text/javascript" src="../../static/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="../../static/easyui/jquery.easyui.min.js"></script>
+    <script src="../../static/easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="../../static/js/ajax.js"></script>
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+
+        }
+        a {
+            text-decoration: none;
+        }
+        .add_updata form table tr{
+            margin: 10px !important;
+        }
+        .add_updata form td{  
+            padding: 5px;               
+            height: 22px;
+
+        }
+        .add_updata form input{
+            margin-left: 5px;
+            padding: 2px;
+            width: 80px;
+        }
+        .add_updata form input[type="radio"]{
+            width: 16px;
+            padding-left: 5px;
+        }
+        .add_updata #Name{
+            width: 80px;
+        }
+        
+       
+    </style>
+
+    <title>员工列表</title>
+</head>
+
+<body>
+    <table id="dg" class="easyui-datagrid" title="员工列表" style="height:100%" data-options="singleSelect:true,toolbar:'#tb',fit:true,fitColumns:true,pagination:true,collapsible:true,url:'/employee/getlist',method:'post'">
+        <thead>
+            <tr>
+                <th data-options="field:'Id',width:80 ,align:'center'">编号</th>
+                <th data-options="field:'Name',width:100 ,align:'center'">姓名</th>
+                <th data-options="field:'IdCard',width:100 ,align:'center'">身份证</th>
+                <th data-options="field:'Age',width:100 ,align:'center'">年龄</th>
+                <th data-options="field:'Brithday',width:100 ,align:'center'">出生年月日</th>
+                <th data-options="field:'height',width:100 ,align:'center'">身高</th>
+                <th data-options="field:'Weight',width:100 ,align:'center'">体重</th>
+                <th data-options="field:'Department',width:100 ,align:'center'">部门</th>
+                <th data-options="field:'Position',width:100 ,align:'center'">职位</th>
+                <th data-options="field:'Remark',width:80,align:'center'"> 备注</th>
+                <th data-options="field:'Delflage',width:80,align:'center'">删除与否</th>
+                <th data-options="field:' ',align:'center'">操作</th>
+            </tr>
+        </thead>
+
+
+    </table>
+    <div id="tb">
+        <a href="#" id="btn_add" class="easyui-linkbutton" iconCls="icon-add" plain="true">添加</a>
+
+    </div>
+
+    <div id="add" class="add_updata">
+    </div>
+    <div id="updata" class="add_updata">
+    </div>
+</body>
+
+</html>
+<script>
+
+    function getPosition(value, row, index) {
+        return row.RoleName;
+    }
+    //处理删除标记
+    function delFage(value, row, index) {
+        if (value) {
+            return "删除";
+        } else {
+            return "未删除";
+        }
+
+    }
+    //添加操作按钮
+    function operate(value, row, index) {
+        return '<a href="#" onclick="updata(' + row.Id + ')">修改</a>&nbsp&nbsp <a href="#" onclick="del(' + row.Id + ')">删除</a>';
+    }
+    //是不是菜单
+    function isMenu(value, row, index) {
+        if (value) {
+            return "是";
+        } else {
+            return "不是";
+        }
+    }
+    // 是不是方法
+    function mothed(value, row, index) {
+        if (value) {
+            return "是";
+        } else {
+            return "不是";
+        }
+    }
+
+    //修改
+    function updata(id) {
+        //打开修改对话框
+        openDialog('updata', "修改权限", "/employeee/updata", "/employeee/updata?id=" + id);
+        //alert(id);
+    }
+    //删除
+    function del(id) {
+        ajax({
+            type: 'post',
+            data: 'id=' + id,
+            url: '/employeee/delete',
+            success: function (data) {
+                //操作成功的
+                if (data.code == 4000) {
+                    //提示用户操作成功
+                    $.messager.alert('提示', data.text, 'info');
+                    //刷新当前的datagrid 
+                    reloadDataGrid();
+                } else {
+                    $.messager.alert('提示', data.text, 'warning');
+                }
+            }
+        })
+
+    }
+
+    //easyui linkbutton bind click 
+    $('#btn_add').bind('click', function () {
+        openDialog('add', "添加员工", "/employee/add", "/employee/add");
+    });
+    //打开对话框
+    function openDialog(div, title, submitUrl, url) {
+        $('#' + div).dialog({
+            title: title,
+            width: 800,            
+            closed: false,
+            cache: false,
+            modal: true,
+            href: url,
+            buttons: [{
+                text: '提交',
+                handler: function () {
+                    submit(div, submitUrl);
+                }
+            }, {
+                text: '关闭',
+                handler: function () {
+                    closeDialog(div);
+                }
+            }]
+        });
+
+    }
+    //关闭对话框
+    function closeDialog(div) {
+        $('#' + div).dialog('close');
+    }
+    //提交数据
+    function submit(div, url) {
+        ajax({
+            type: 'post',
+            data: $('#' + div + ' form').serialize(),//格式化表格数据
+            url: url,
+            success: function (data) {
+                oprateSuccess(div, data);
+            }
+        });
+
+    }
+    //操作完成
+    function oprateSuccess(div, data) {
+        //操作成功的
+        if (data.code == 10000) {
+            //提示用户操作成功
+            $.messager.alert('提示', data.text, 'info');
+            //关闭对话框
+            closeDialog(div);
+            //刷新当前的datagrid 
+            reloadDataGrid();
+        } else {
+            $.messager.alert('提示', data.text, 'warning');
+        }
+
+    }
+    // datagrid重新加载数据
+    function reloadDataGrid() {
+        $('#dg').datagrid('reload');
+    }
+    //页面加载完成
+    $(function () {
+       
+        $('#dg').datagrid({            
+            loadFilter: function (data) {
+                if (data["code"] == 10003) {                   
+                    return data["data"]["rows"];
+                   
+                }
+            }
+        });
+    })
+    ////初始化
+    function init() {
+        //initialize table data filter
+       
+    }
+
+</script>

@@ -67,6 +67,7 @@ func judgeRoleIsExist(roleList []models.Role, role models.Role) bool {
 	return false
 }
 
+//get main menu son menu tree
 func GetMenuTree(parentId int, roleList []models.Role) []models.MenuTree {
 	sql := "select m.id, m.menu_name,m.menu_url,m.is_menu  from (select r.role_id,r.power_id,p.menu_id from role_powers  as r inner join power as p on r.power_id=p.id) as a  inner join menu as m on a.menu_id=m.id where m.parent_id=" + strconv.Itoa(parentId)
 	sql += " and a.role_id in ("
@@ -91,6 +92,7 @@ func GetMenuTree(parentId int, roleList []models.Role) []models.MenuTree {
 	return tree
 }
 
+//get main menu
 func GetMainMenu(parentId int, roleList []models.Role) []models.Menu {
 	sql := "select m.id, m.menu_name,m.menu_url,m.is_menu  from (select r.role_id,r.power_id,p.menu_id from role_powers  as r inner join power as p on r.power_id=p.id) as a  inner join menu as m on a.menu_id=m.id where m.parent_id=" + strconv.Itoa(parentId)
 	sql += " and m.is_menu=1 and a.role_id in ("
